@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, 111);
         }
         else {
-            LoadContracts();
+            LoadContacts();
         }
     }
 
@@ -52,11 +52,11 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == 111 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-            LoadContracts();
+            LoadContacts();
         }
     }
 
-    private void LoadContracts(){
+    private void LoadContacts(){
         Uri uri = Uri.parse("content://contacts/people");
 
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
@@ -65,10 +65,21 @@ public class MainActivity extends AppCompatActivity {
             Contract contract = new Contract();
             contract.hoTen = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
             contract.soDienThoai = "123456";
+            String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
 
+            Cursor cursorPhone = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID +"="+id,
+                    null, null, null
+                    );
+            while(cursorPhone.moveToNext()){
+                contract.soDienThoai = cursorPhone.getString(cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            }
+
+            cursorPhone.close();
             dulieu.add(contract);
-            return;
         }
+        cursor.close();
+        adapter.notifyDataSetChanged();
     }
 
    
